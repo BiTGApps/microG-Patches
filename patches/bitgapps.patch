@@ -1,0 +1,139 @@
+From 53f2327a08cb5ed26fe7afea250fd4e563f05b16 Mon Sep 17 00:00:00 2001
+From: TheHitMan7 <krtik.vrma@gmail.com>
+Date: Thu, 17 Nov 2022 16:38:00 +0530
+Subject: [PATCH] Patch for Systemless Support
+
+---
+ scripts/installer.sh | 54 ++++++++++++++++++++------------------------
+ 1 file changed, 25 insertions(+), 29 deletions(-)
+
+diff --git a/scripts/installer.sh b/scripts/installer.sh
+index 1d6c8bc..e6ca038 100755
+--- a/scripts/installer.sh
++++ b/scripts/installer.sh
+@@ -53,7 +53,6 @@ if [[ "$(getprop "sys.bootmode")" = "2" ]]; then
+     echo "! Read-only file system"
+     exit 1
+   fi
+-  install -d $SYSTEM/etc/module
+ fi
+ 
+ # Product is a dedicated partition
+@@ -396,7 +395,6 @@ mount_all() {
+   if is_mounted /product; then
+     ln -sf /product /system
+   fi
+-  install -d $SYSTEM/etc/module
+ }
+ 
+ unmount_all() {
+@@ -486,15 +484,15 @@ get_prop() {
+ }
+ 
+ on_systemless_check() {
+-  supported_module_config="false"
++  supported_module_config="true"
+   if [ -f "$BITGAPPS_CONFIG" ]; then
+     supported_module_config="$(get_prop "ro.config.systemless")"
+     # Re-write missing configuration
+     if [ -z "$supported_module_config" ]; then
+-      supported_module_config="false"
++      supported_module_config="true"
+     fi
+     # Override unsupported configuration
+-    supported_module_config="false"
++    supported_module_config="true"
+   fi
+ }
+ 
+@@ -724,7 +722,6 @@ pre_installed_v25() {
+   done
+   rm -rf $SYSTEM_OVERLAY/PlayStoreOverlay.apk
+   rm -rf $SYSTEM_ADDOND/70-bitgapps.sh
+-  rm -rf $SYSTEM/etc/module/module.prop
+ }
+ 
+ pkg_TMPSys() {
+@@ -1001,7 +998,7 @@ get_setup_config() {
+       rm -rf $SYSTEM/system_ext/app/$i $SYSTEM/system_ext/priv-app/$i
+     done
+     # Dump config information
+-    local MODULE="$TMP" && echo "WIZARD" >> $MODULE/config
++    echo "WIZARD" >> $MODULE/config
+   fi
+   if [ "$supported_module_config" = "true" ]; then
+     for i in ManagedProvisioning Provision LineageSetupWizard; do
+@@ -1013,7 +1010,7 @@ get_setup_config() {
+       touch $SYSTEM_SYSTEM/system_ext/app/$i/.replace $SYSTEM_SYSTEM/system_ext/priv-app/$i/.replace
+     done
+     # Dump config information
+-    local SYSTEM="$TMP" && echo "WIZARD" >> $SYSTEM/config
++    echo "WIZARD" >> $SYSTEM/config
+   fi
+   ZIP="zip/core/GoogleBackupTransport.tar.xz zip/core/GoogleRestore.tar.xz zip/core/SetupWizardPrebuilt.tar.xz"
+   if [ "$BOOTMODE" = "false" ]; then
+@@ -1253,7 +1250,6 @@ module_info() {
+ }
+ 
+ system_info() {
+-  local IS_MAGISK_MODULES="true" && local MODULE="$SYSTEM/etc/module"
+   if [ "$supported_module_config" = "false" ] && $IS_MAGISK_MODULES; then
+     echo -e "id=BiTGApps-Android" >> $MODULE/module.prop
+     echo -e "name=BiTGApps for Android" >> $MODULE/module.prop
+@@ -1377,36 +1373,36 @@ post_install() {
+   build_defaults
+   mk_component
+   system_layout
+-  ${is_encrypted_data}
+-  ${is_uninstaller}
+-  ${require_new_magisk}
+-  ${set_bitgapps_module}
+-  ${set_module_layout}
+-  ${system_module_layout}
+-  ${make_module_layout}
+-  ${product_module_layout}
+-  ${make_module_layout}
+-  ${system_ext_module_layout}
+-  ${make_module_layout}
+-  ${common_module_layout}
++  is_encrypted_data
++  is_uninstaller
++  require_new_magisk
++  set_bitgapps_module
++  set_module_layout
++  system_module_layout
++  make_module_layout
++  product_module_layout
++  make_module_layout
++  system_ext_module_layout
++  make_module_layout
++  common_module_layout
+   pre_installed_v25
+   sdk_v25_install
+   on_setup_check
+   on_setup_install
+   fsverity_cert
+   backup_script
+-  ${override_module}
+-  ${fix_gms_hide}
+-  ${fix_module_perm}
++  override_module
++  fix_gms_hide
++  fix_module_perm
+   dialer_config
+   dialer_framework
+   maps_config
+   maps_framework
+-  ${module_info}
+-  system_info
+-  ${module_probe}
+-  ${module_service}
+-  ${module_cleanup}
++  module_info
++  ${system_info}
++  module_probe
++  module_service
++  module_cleanup
+   on_installed
+ }
+ 

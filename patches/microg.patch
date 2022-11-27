@@ -1,0 +1,108 @@
+From 7f1cbdb7b28884a1079e3af93d1257031064ab93 Mon Sep 17 00:00:00 2001
+From: TheHitMan7 <krtik.vrma@gmail.com>
+Date: Thu, 17 Nov 2022 16:49:06 +0530
+Subject: [PATCH] Patch for Systemless Support
+
+---
+ installer.sh | 47 ++++++++++++++++++++++-------------------------
+ 1 file changed, 22 insertions(+), 25 deletions(-)
+
+diff --git a/installer.sh b/installer.sh
+index 75d1f3f..6085fdc 100755
+--- a/installer.sh
++++ b/installer.sh
+@@ -56,7 +56,6 @@ if [[ "$(getprop "sys.bootmode")" = "2" ]]; then
+     echo "! Read-only file system"
+     exit 1
+   fi
+-  install -d $SYSTEM/etc/module
+ fi
+ 
+ # Product is a dedicated partition
+@@ -389,7 +388,6 @@ mount_all() {
+   if is_mounted /product; then
+     ln -sf /product /system
+   fi
+-  install -d $SYSTEM/etc/module
+ }
+ 
+ unmount_all() {
+@@ -479,15 +477,15 @@ get_prop() {
+ }
+ 
+ on_systemless_check() {
+-  supported_module_config="false"
++  supported_module_config="true"
+   if [ -f "$BITGAPPS_CONFIG" ]; then
+     supported_module_config="$(get_prop "ro.config.systemless")"
+     # Re-write missing configuration
+     if [ -z "$supported_module_config" ]; then
+-      supported_module_config="false"
++      supported_module_config="true"
+     fi
+     # Override unsupported configuration
+-    supported_module_config="false"
++    supported_module_config="true"
+   fi
+ }
+ 
+@@ -1033,7 +1031,6 @@ module_info() {
+ }
+ 
+ system_info() {
+-  local IS_MAGISK_MODULES="true" && local MODULE="$SYSTEM/etc/module"
+   if [ "$supported_module_config" = "false" ] && $IS_MAGISK_MODULES; then
+     echo -e "id=MicroG-Android" >> $MODULE/module.prop
+     echo -e "name=MicroG for Android" >> $MODULE/module.prop
+@@ -1167,32 +1164,32 @@ post_install() {
+   build_defaults
+   mk_component
+   system_layout
+-  ${is_encrypted_data}
+-  ${is_uninstaller}
+-  ${require_new_magisk}
+-  ${set_bitgapps_module}
+-  ${set_module_layout}
+-  ${system_module_layout}
+-  ${make_module_layout}
+-  ${product_module_layout}
+-  ${make_module_layout}
+-  ${system_ext_module_layout}
+-  ${make_module_layout}
+-  ${common_module_layout}
++  is_encrypted_data
++  is_uninstaller
++  require_new_magisk
++  set_bitgapps_module
++  set_module_layout
++  system_module_layout
++  make_module_layout
++  product_module_layout
++  make_module_layout
++  system_ext_module_layout
++  make_module_layout
++  common_module_layout
+   pre_installed_v25
+   sdk_v25_install
+   fsverity_cert
+   backup_script
+-  ${fix_gms_hide}
+-  ${fix_module_perm}
++  fix_gms_hide
++  fix_module_perm
+   maps_config
+   maps_framework
+-  ${module_info}
+-  system_info
++  module_info
++  ${system_info}
+   permissions
+-  ${module_probe}
+-  ${module_service}
+-  ${module_cleanup}
++  module_probe
++  module_service
++  module_cleanup
+   on_installed
+ }
+ 
