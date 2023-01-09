@@ -39,8 +39,8 @@ jobs:
            GITHUB: https://raw.githubusercontent.com/BiTGApps
          run: |
            cd microG
-           curl -sLo microg.patch $GITHUB/microG-Patches/master/patches/microg.patch
-           git apply microg.patch
+           curl -sLo systemless.patch $GITHUB/microG-Patches/master/systemless.patch
+           git apply systemless.patch
            cd ..
 
        - name: Build microG Package
